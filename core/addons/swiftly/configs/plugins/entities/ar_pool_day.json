@@ -1,0 +1,16 @@
+{
+	"delete": [
+		{
+			"classname": "momentary_rot_button"
+		},
+		{
+			"classname": "prop_physics_multiplayer"
+		},
+		{
+			"classname": "prop_ragdoll"
+		},
+		{
+			"classname": "trigger_multiple"
+		}
+	]
+}

@@ -1,0 +1,8 @@
+{
+	"delete": [
+		"maps/de_basalt.vpk",
+		"maps/de_edin.vpk",
+		"maps/de_palais.vpk",
+		"maps/de_whistle.vpk"
+	]
+}

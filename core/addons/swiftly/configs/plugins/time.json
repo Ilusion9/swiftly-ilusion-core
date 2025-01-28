@@ -1,0 +1,13 @@
+{
+	"tag": "[Time]",
+	"intervals": [
+		{
+			"type": "month",
+			"value": 1
+		},
+		{
+			"type": "year",
+			"value": 1
+		}
+	]
+}

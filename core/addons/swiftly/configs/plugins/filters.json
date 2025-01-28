@@ -1,0 +1,36 @@
+{
+	"tag": "[Filter]",
+	"chat": {
+		"filters": [
+			"http://",
+			"https://",
+			"www.",
+			".ro",
+			".com",
+			".net",
+			".org",
+			".gg",
+			".money",
+			".club",
+			".land",
+			".trade"
+		]
+	},
+	"name": {
+		"utf": false,
+		"filters": [
+			"http://",
+			"https://",
+			"www.",
+			".ro",
+			".com",
+			".net",
+			".org",
+			".gg",
+			".money",
+			".club",
+			".land",
+			".trade"
+		]
+	}
+}

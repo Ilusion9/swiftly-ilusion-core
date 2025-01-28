@@ -1,0 +1,38 @@
+{
+	"tag": "[Map]",
+	"history": {
+		"size": 20
+	},
+	"mapchooser": {
+		"include": {
+			"count": 3
+		},
+		"exclude": {
+			"count": 1,
+			"time": 18000
+		},
+		"sounds": {
+			"player": {
+				"success": "Vote.Cast.Yes",
+				"error": "Vote.Failed"
+			},
+			"timer": "Alert.WarmupTimeoutBeep",
+			"nextmap": "UIPanorama.popup_accept_match_confirmed"
+		},
+		"time": 15
+	},
+	"maplist": {
+		"pagination": {
+			"size": 10
+		}
+	},
+	"nominations": {
+		"enable": true
+	},
+	"rtv": {
+		"enable": true,
+		"required": {
+			"percent": 60
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"chat": {
+		"interval": 60,
+		"messages": [
+			"{lime}[Help]{default} Type {lime}!help{default} to see your available commands",
+			"{lime}[Resetscore]{default} Type {lime}!rs{default} to reset your score",
+			"{lime}[Servers]{default} Type {lime}!servers{default} to see our community servers",
+			"{lime}[Stats]{default} Type {lime}!stats{default} to see your stats",
+			"{lime}[Time]{default} Type {lime}!time{default} to see your played time"
+		]
+	}
+}

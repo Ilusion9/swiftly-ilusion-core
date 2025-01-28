@@ -1,0 +1,47 @@
+{
+	"tag": "[Admin]",
+	"groups": [
+		{
+			"group": "Owners",
+			"rank": "Owner",
+			"permissions": [
+				"ban",
+				"banhistory",
+				"chat",
+				"cvar",
+				"exec",
+				"gag",
+				"gaghistory",
+				"kick",
+				"map",
+				"mute",
+				"mutehistory",
+				"permban",
+				"permgag",
+				"permmute",
+				"rcon",
+				"reloadadmins",
+				"rename",
+				"say",
+				"slap",
+				"slay",
+				"team",
+				"time",
+				"unban",
+				"ungag",
+				"unmute",
+				"who"
+			],
+			"immunity": 100
+		}
+	],
+	"users": [
+		{
+			"user": "Ilusion",
+			"steam": "76561198041260919",
+			"groups": [
+				"Owners"
+			]
+		}
+	]
+}

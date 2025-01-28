@@ -1,0 +1,12 @@
+{
+	"block": [
+		{
+			"id": 351,
+			"name": "CS_UM_SendLastKillerDamageToClient"
+		},
+		{
+			"id": 411,
+			"name": "TE_WorldDecalId"
+		}
+	]
+}

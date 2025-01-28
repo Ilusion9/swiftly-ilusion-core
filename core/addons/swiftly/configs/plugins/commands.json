@@ -1,0 +1,26 @@
+{
+	"block": [
+		"coverme",
+		"enemyspot",
+		"enemydown",
+		"fallback",
+		"followme",
+		"getinpos",
+		"getout",
+		"go",
+		"holdpos",
+		"inposition",
+		"needbackup",
+		"negative",
+		"player_ping",
+		"regroup",
+		"report",
+		"reportingin",
+		"roger",
+		"sectorclear",
+		"sticktog",
+		"stormfront",
+		"takepoint",
+		"takingfire"
+	]
+}

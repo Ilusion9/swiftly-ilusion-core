@@ -1,0 +1,18 @@
+{
+	"tag": "[Tag]",
+	"colors": [
+		{
+			"name": "Yellow",
+			"tag": "{yellow}"
+		}
+	],
+	"users": [
+		{
+			"user": "Ilusion",
+			"steam": "76561198041260919",
+			"tags": [
+				"Sefu"
+			]
+		}
+	]
+}

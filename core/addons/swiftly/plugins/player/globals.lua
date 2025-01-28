@@ -1,0 +1,1 @@
+HISTORY_SIZE = 20

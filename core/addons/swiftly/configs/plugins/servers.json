@@ -1,0 +1,6 @@
+{
+	"tag": "[Servers]",
+	"interval": 60,
+	"method": "POST",
+	"url": ""
+}
