@@ -102,7 +102,7 @@ function Fixes_RespawnPlayer(p_PlayerId)
 end
 
 function Fixes_RespawnPlayerOnRequest(p_PlayerId)
-	if convar:Get("mp_deathcam_skippable") == 0 then
+	if not convar:Get("mp_deathcam_skippable") then
 		return
 	end
 	
