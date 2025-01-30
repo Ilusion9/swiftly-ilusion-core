@@ -229,7 +229,7 @@ commands:Register("nominate", function(p_PlayerId, p_Args, p_ArgsCount, p_Silent
 	local l_PlayerName = exports["helpers"]:GetPlayerName(p_PlayerId)
 	local l_PlayerColor = exports["helpers"]:GetPlayerChatColor(p_PlayerId)
 	
-	l_Player:SendMsg(MessageType.Console, string.format("%s %s nominated %s", g_Config["tag"], l_PlayerName, g_MapCycle[l_MapIndex]["map"]))
+	l_Player:SendMsg(MessageType.Console, string.format("%s %s nominated %s", g_Config["tag"], l_PlayerName, g_MapCycle[l_Index]["map"]))
 	
 	playermanager:SendMsg(MessageType.Chat, string.format("{lime}%s{default} %s%s{default} nominated {lime}%s{default}", g_Config["tag"], l_PlayerColor, l_PlayerName, g_MapCycle[l_Index]["map"]))
 	
