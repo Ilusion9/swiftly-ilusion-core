@@ -291,7 +291,7 @@ commands:Register("rtv", function(p_PlayerId, p_Args, p_ArgsCount, p_Silent, p_P
 		return
 	end
 	
-	if g_RTVStartNextRound or exports["helpers"]:IsMatchOver() then
+	if g_RTVNextRound or exports["helpers"]:IsMatchOver() then
 		exports["helpers"]:ReplyToCommand(p_PlayerId, "{lightred}" .. g_Config["tag"] .. "{default}", "This command is no longer available")
 		return
 	end

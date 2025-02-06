@@ -120,7 +120,7 @@ function Helpers_FindTarget(p_PlayerId, p_Arg, p_Flags, p_Tag)
 	local l_Flags = {}
 	
 	for i = 1, #p_Flags do
-		l_Flags[p_Flags[i]] = true
+		l_Flags[string.sub(p_Flags, i, i)] = true
 	end
 	
 	local l_Target = nil
@@ -246,6 +246,34 @@ function Helpers_GetArgTime(p_Arg)
 	return l_Value * 1000
 end
 
+function Helpers_GetBots()
+	local l_Bots = 0
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() and l_PlayerIter:IsFakeClient() then
+			table.insert(l_Bots, i)
+		end
+	end
+	
+	return l_Bots
+end
+
+function Helpers_GetBotCount()
+	local l_PlayerCount = 0
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() and l_PlayerIter:IsFakeClient() then
+			l_PlayerCount = l_PlayerCount + 1
+		end
+	end
+	
+	return l_PlayerCount
+end
+
 function Helpers_GetBoxEdgesFromPoints(p_Point1, p_Point2)
 	local l_Min = {}
 	local l_Max = {}
@@ -368,6 +396,22 @@ function Helpers_GetMapTimeLeft()
 	local l_TimeLeft = l_StartTime + math.floor(l_TimeLimit * 60000) - l_ServerTime
 	
 	return math.max(l_TimeLeft, 0)
+end
+
+function Helpers_GetPlayers(p_Nobots)
+	local l_Players = 0
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() then
+			if not p_Nobots or not l_PlayerIter:IsFakeClient() then
+				table.insert(l_Players, i)
+			end
+		end
+	end
+	
+	return l_Players
 end
 
 function Helpers_GetPlayerActiveWeapon(p_PlayerId)
@@ -805,6 +849,141 @@ function Helpers_GetRoundTimeLeft()
 	return math.max(l_StartTime + l_Time - l_ServerTime, 0)
 end
 
+function Helpers_GetTeamAliveBots(p_Team)
+	local l_Bots = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_Bots[p_Team[i]] = {}
+		end
+	else
+		l_Bots[p_Team] = {}
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() and l_PlayerIter:IsFakeClient() then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_Bots[l_PlayerIterTeam] and Helpers_IsPlayerAlive(i) then
+				table.insert(l_Bots[l_PlayerIterTeam], i)
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_Bots or l_Bots[p_Team]
+end
+
+function Helpers_GetTeamAlivePlayers(p_Team, p_Nobots)
+	local l_Players = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_Players[p_Team[i]] = {}
+		end
+	else
+		l_Players[p_Team] = {}
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_Players[l_PlayerIterTeam] and Helpers_IsPlayerAlive(i) then
+				if not p_Nobots or not l_PlayerIter:IsFakeClient() then
+					table.insert(l_Players[l_PlayerIterTeam], i)
+				end
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_Players or l_Players[p_Team]
+end
+
+function Helpers_GetTeamBots(p_Team)
+	local l_Bots = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_Bots[p_Team[i]] = {}
+		end
+	else
+		l_Bots[p_Team] = {}
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() and l_PlayerIter:IsFakeClient() then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_Bots[l_PlayerIterTeam] then
+				table.insert(l_Bots[l_PlayerIterTeam], i)
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_Bots or l_Bots[p_Team]
+end
+
+function Helpers_GetTeamBotAliveCount(p_Team, p_Nobots)
+	local l_PlayerCount = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_PlayerCount[p_Team[i]] = 0
+		end
+	else
+		l_PlayerCount[p_Team] = 0
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter 
+			and l_PlayerIter:IsValid() 
+			and l_PlayerIter:IsFakeClient() 
+		then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_PlayerCount[l_PlayerIterTeam] and Helpers_IsPlayerAlive(i) then
+				l_PlayerCount[l_PlayerIterTeam] = l_PlayerCount[l_PlayerIterTeam] + 1
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_PlayerCount or l_PlayerCount[p_Team]
+end
+
+function Helpers_GetTeamBotCount(p_Team, p_Nobots)
+	local l_PlayerCount = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_PlayerCount[p_Team[i]] = 0
+		end
+	else
+		l_PlayerCount[p_Team] = 0
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() and l_PlayerIter:IsFakeClient() then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_PlayerCount[l_PlayerIterTeam] then
+				l_PlayerCount[l_PlayerIterTeam] = l_PlayerCount[l_PlayerIterTeam] + 1
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_PlayerCount or l_PlayerCount[p_Team]
+end
+
 function Helpers_GetTeamChatColor(p_Team)
 	return g_TeamChatColors[p_Team]
 end
@@ -833,6 +1012,34 @@ function Helpers_GetTeamName(p_Team)
 	return g_TeamNames[p_Team]
 end
 
+function Helpers_GetTeamPlayers(p_Team, p_Nobots)
+	local l_Players = {}
+	
+	if type(p_Team) == "table" then
+		for i = 1, #p_Team do
+			l_Players[p_Team[i]] = {}
+		end
+	else
+		l_Players[p_Team] = {}
+	end
+	
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() then
+			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
+			
+			if l_Players[l_PlayerIterTeam] then
+				if not p_Nobots or not l_PlayerIter:IsFakeClient() then
+					table.insert(l_Players[l_PlayerIterTeam], i)
+				end
+			end
+		end
+	end
+	
+	return type(p_Team) == "table" and l_Players or l_Players[p_Team]
+end
+
 function Helpers_GetTeamPlayerAliveCount(p_Team, p_Nobots)
 	local l_PlayerCount = {}
 	
@@ -847,10 +1054,10 @@ function Helpers_GetTeamPlayerAliveCount(p_Team, p_Nobots)
 	for i = 0, playermanager:GetPlayerCap() - 1 do
 		local l_PlayerIter = GetPlayer(i)
 		
-		if l_PlayerIter and l_PlayerIter:IsValid() and Helpers_IsPlayerAlive(i) then
+		if l_PlayerIter and l_PlayerIter:IsValid() then
 			local l_PlayerIterTeam = Helpers_GetPlayerTeam(i)
 			
-			if l_PlayerCount[l_PlayerIterTeam] then
+			if l_PlayerCount[l_PlayerIterTeam] and Helpers_IsPlayerAlive(i) then
 				if not p_Nobots or not l_PlayerIter:IsFakeClient() then
 					l_PlayerCount[l_PlayerIterTeam] = l_PlayerCount[l_PlayerIterTeam] + 1
 				end
@@ -1583,7 +1790,7 @@ function Helpers_RemovePlayerGod(p_PlayerId)
 		return
 	end
 	
-	l_Player:CBaseEntity().TakesDamage = false
+	l_Player:CBaseEntity().TakesDamage = true
 end
 
 function Helpers_ReplyToCommand(p_PlayerId, p_Tag, p_Message)
@@ -1780,6 +1987,16 @@ function Helpers_SetPlayerEntityName(p_PlayerId, p_Name)
 	l_Player:CBaseEntity().Parent.Entity.Name = p_Name
 end
 
+function Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player or not l_Player:IsValid() then
+		return
+	end
+	
+	exports["helpers"]:SetEntityRenderColor(l_Player:CBaseEntity():ToPtr(), p_Color)
+end
+
 function Helpers_SetPlayerGod(p_PlayerId)
 	local l_Player = GetPlayer(p_PlayerId)
 	
@@ -1787,7 +2004,7 @@ function Helpers_SetPlayerGod(p_PlayerId)
 		return
 	end
 	
-	l_Player:CBaseEntity().TakesDamage = true
+	l_Player:CBaseEntity().TakesDamage = false
 end
 
 function Helpers_SetPlayerHealth(p_PlayerId, p_Health)

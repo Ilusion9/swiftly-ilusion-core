@@ -2,16 +2,20 @@
 	"tag": "[AFK]",
 	"kick": {
 		"enable": true,
-		"min_players": 10,
+		"players": {
+			"min": 10
+		},
 		"time": 300
 	},
 	"move": {
 		"enable": true,
-		"min_players": 0,
+		"players": {
+			"min": 0
+		},
 		"time": 120
 	},
 	"slay": {
-		"enable": true,
+		"enable": false,
 		"time": 60
 	},
 	"time": 30

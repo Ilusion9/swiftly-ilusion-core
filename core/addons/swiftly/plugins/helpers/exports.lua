@@ -46,6 +46,14 @@ export("GetArgTime", function(p_Arg)
 	return Helpers_GetArgTime(p_Arg)
 end)
 
+export("GetBots", function()
+	return Helpers_GetBots()
+end)
+
+export("GetBotCount", function()
+	return Helpers_GetBotCount()
+end)
+
 export("GetBoxEdgesFromPoints", function(p_Point1, p_Point2)
 	return Helpers_GetBoxEdgesFromPoints(p_Point1, p_Point2)
 end)
@@ -186,6 +194,26 @@ export("GetRoundTimeLeft", function()
 	return Helpers_GetRoundTimeLeft()
 end)
 
+export("GetTeamAliveBots", function(p_Team)
+	return Helpers_GetTeamAliveBots(p_Team)
+end)
+
+export("GetTeamAlivePlayers", function(p_Team, p_Nobots)
+	return Helpers_GetTeamAlivePlayers(p_Team, p_Nobots)
+end)
+
+export("GetTeamBots", function(p_Team)
+	return Helpers_GetTeamBots(p_Team)
+end)
+
+export("GetTeamBotAliveCount", function(p_Team)
+	return Helpers_GetTeamBotAliveCount(p_Team)
+end)
+
+export("GetTeamBotCount", function(p_Team)
+	return Helpers_GetTeamBotCount(p_Team)
+end)
+
 export("GetTeamChatColor", function(p_Team)
 	return Helpers_GetTeamChatColor(p_Team)
 end)
@@ -204,6 +232,10 @@ end)
 
 export("GetTeamName", function(p_Team)
 	return Helpers_GetTeamName(p_Team)
+end)
+
+export("GetTeamPlayers", function(p_Team, p_Nobots)
+	return Helpers_GetTeamPlayers(p_Team, p_Nobots)
 end)
 
 export("GetTeamPlayerAliveCount", function(p_Team, p_Nobots)
@@ -392,6 +424,10 @@ end)
 
 export("SetPlayerEntityName", function(p_PlayerId, p_Name)
 	Helpers_SetPlayerEntityName(p_PlayerId, p_Name)
+end)
+
+export("SetPlayerRenderColor", function(p_PlayerId, p_Color)
+	Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
 end)
 
 export("SetPlayerGod", function(p_PlayerId)

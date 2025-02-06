@@ -1,13 +1,17 @@
 function AFK_CheckPlayerKickCount()
-	if g_Config["kick.min_players"] == 0 then
+	if g_Config["kick.players.min"] == 0 or exports["helpers"]:IsMatchOver() then
 		return
 	end
 	
 	SetTimeout(100, function()
+		if exports["helpers"]:IsMatchOver() then
+			return
+		end
+		
 		local l_PlayerCount = exports["helpers"]:GetTeamPlayerCount({Team.Spectator, Team.T, Team.CT}, true)
 		local l_PlayerKickCount = l_PlayerCount[Team.Spectator] + l_PlayerCount[Team.T] + l_PlayerCount[Team.CT]
 		
-		if l_PlayerKickCount >= g_Config["kick.min_players"] then
+		if l_PlayerKickCount >= g_Config["kick.players.min"] then
 			return
 		end
 		
@@ -18,15 +22,19 @@ function AFK_CheckPlayerKickCount()
 end
 
 function AFK_CheckPlayerMoveCount()
-	if g_Config["move.min_players"] == 0 then
+	if g_Config["move.players.min"] == 0 or exports["helpers"]:IsMatchOver() then
 		return
 	end
 	
 	SetTimeout(100, function()
+		if exports["helpers"]:IsMatchOver() then
+			return
+		end
+		
 		local l_PlayerCount = exports["helpers"]:GetTeamPlayerCount({Team.T, Team.CT}, true)
 		local l_PlayerMoveCount = l_PlayerCount[Team.T] + l_PlayerCount[Team.CT]
 		
-		if l_PlayerMoveCount >= g_Config["move.min_players"] then
+		if l_PlayerMoveCount >= g_Config["move.players.min"] then
 			return
 		end
 		
@@ -53,7 +61,7 @@ function AFK_GetPlayerAFKTime(p_PlayerId)
 end
 
 function AFK_IncreasePlayerKickTime(p_PlayerId, p_Time, p_PlayerCount)
-	if not g_Config["kick.enable"] or p_PlayerCount < g_Config["kick.min_players"] then
+	if not g_Config["kick.enable"] or p_PlayerCount < g_Config["kick.players.min"] then
 		return {
 			["time"] = 0
 		}
@@ -103,7 +111,7 @@ function AFK_IncreasePlayerKickTime(p_PlayerId, p_Time, p_PlayerCount)
 end
 
 function AFK_IncreasePlayerMoveTime(p_PlayerId, p_Time, p_PlayerCount)
-	if not g_Config["move.enable"] or p_PlayerCount < g_Config["move.min_players"] then
+	if not g_Config["move.enable"] or p_PlayerCount < g_Config["move.players.min"] then
 		return {
 			["time"] = 0
 		}
@@ -217,10 +225,10 @@ function AFK_LoadConfig()
 	g_Config = {}
 	g_Config["tag"] = config:Fetch("afk.tag")
 	g_Config["kick.enable"] = config:Fetch("afk.kick.enable")
-	g_Config["kick.min_players"] = tonumber(config:Fetch("afk.kick.min_players"))
+	g_Config["kick.players.min"] = tonumber(config:Fetch("afk.kick.players.min"))
 	g_Config["kick.time"] = tonumber(config:Fetch("afk.kick.time"))
 	g_Config["move.enable"] = config:Fetch("afk.move.enable")
-	g_Config["move.min_players"] = tonumber(config:Fetch("afk.move.min_players"))
+	g_Config["move.players.min"] = tonumber(config:Fetch("afk.move.players.min"))
 	g_Config["move.time"] = tonumber(config:Fetch("afk.move.time"))
 	g_Config["slay.enable"] = config:Fetch("afk.slay.enable")
 	g_Config["slay.time"] = tonumber(config:Fetch("afk.slay.time"))
@@ -235,8 +243,8 @@ function AFK_LoadConfig()
 		g_Config["kick.enable"] = g_Config["kick.enable"] and g_Config["kick.enable"] ~= 0
 	end
 	
-	if not g_Config["kick.min_players"] or g_Config["kick.min_players"] < 0 then
-		g_Config["kick.min_players"] = 0
+	if not g_Config["kick.players.min"] or g_Config["kick.players.min"] < 0 then
+		g_Config["kick.players.min"] = 0
 	end
 	
 	if not g_Config["kick.time"] or g_Config["kick.time"] < AFK_TIME then
@@ -248,8 +256,8 @@ function AFK_LoadConfig()
 		g_Config["move.enable"] = g_Config["move.enable"] and g_Config["move.enable"] ~= 0
 	end
 	
-	if not g_Config["move.min_players"] or g_Config["move.min_players"] < 0 then
-		g_Config["move.min_players"] = 0
+	if not g_Config["move.players.min"] or g_Config["move.players.min"] < 0 then
+		g_Config["move.players.min"] = 0
 	end
 	
 	if not g_Config["move.time"] or g_Config["move.time"] < AFK_TIME then

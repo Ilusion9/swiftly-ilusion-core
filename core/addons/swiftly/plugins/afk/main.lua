@@ -52,10 +52,6 @@ AddEventHandler("OnMapUnload", function(p_Event, p_Map)
 end)
 
 AddEventHandler("OnPostCsIntermission", function(p_Event)
-	if not exports["helpers"]:IsMatchOver() then
-		return
-	end
-	
 	for i = 0, playermanager:GetPlayerCap() - 1 do
 		AFK_ResetPlayerSlayTime(i)
 		AFK_ResetPlayerMoveTime(i)

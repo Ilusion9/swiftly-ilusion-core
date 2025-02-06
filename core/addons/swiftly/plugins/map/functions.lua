@@ -10,7 +10,11 @@ function Map_AddMapInHistory(p_Map, p_StartTime, p_Reason)
 end
 
 function Map_ChangeMap(p_Map, p_Workshop, p_Reason)
-	g_MapChangePeriod = true
+	if g_ThinkTimer then
+		StopTimer(g_ThinkTimer)
+		g_ThinkTimer = nil
+	end
+	
 	g_NextMapReason = p_Reason
 	
 	if p_Workshop then
@@ -35,11 +39,15 @@ function Map_CheckCurrentMap()
 end
 
 function Map_CheckPlayerRTVCount()
-	if not g_Config["rtv.enable"] then
+	if not g_Config["rtv.enable"] or exports["helpers"]:IsMatchOver() then
 		return
 	end
 	
 	SetTimeout(100, function()
+		if exports["helpers"]:IsMatchOver() then
+			return
+		end
+		
 		local l_RemainingRTVCount = Map_GetRemainingRTVCount()
 		
 		if l_RemainingRTVCount == 0 then
@@ -48,16 +56,35 @@ function Map_CheckPlayerRTVCount()
 	end)
 end
 
+function Map_EmitSoundToAll(p_Sound)
+	if #p_Sound == 0 then
+		return
+	end
+	
+	exports["helpers"]:EmitSoundToAll(p_Sound, 100, 1.0)
+end
+
+function Map_EmitSoundToPlayer(p_PlayerId, p_Sound)
+	if #p_Sound == 0 then
+		return
+	end
+	
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player or not l_Player:IsValid() then
+		return
+	end
+	
+	exports["helpers"]:EmitSoundToPlayer(p_PlayerId, p_Sound, 100, 1.0)
+end
+
 function Map_EndVote()
 	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
 	
 	local l_Votes = {}
 	local l_VoteMaps = {}
 	
-	g_NextMapTime = l_ServerTime + 3000
-	
 	g_VotePeriod = nil
-	g_NextMapPeriod = true
 	
 	for i = 1, #g_VoteMaps do
 		table.insert(l_VoteMaps, {
@@ -115,11 +142,12 @@ function Map_EndVote()
 		["index"] = l_VoteMaps[l_Index]
 	}
 	
+	g_NextMapPeriod = true
+	g_NextMapTime = l_ServerTime + 3000
+	
 	playermanager:SendMsg(MessageType.Chat, string.format("{lime}%s{default} The nextmap will be {lime}%s{default}", g_Config["tag"], g_NextMap["map"]))
 	
-	if #g_Config["mapchooser.sounds.nextmap"] ~= 0 then
-		exports["helpers"]:EmitSoundToAll(g_Config["mapchooser.sounds.nextmap"], 100, 1.0)
-	end
+	Map_EmitSoundToAll(g_Config["mapchooser.sounds.nextmap"])
 end
 
 function Map_FindMap(p_Str)
@@ -217,34 +245,29 @@ function Map_GetPastMaps()
 	
 	if g_Map["index"] then
 		table.insert(l_PastMaps, g_Map["index"])
-	end
-	
-	if #l_PastMaps == g_Config["mapchooser.exclude.count"] then
-		return l_PastMaps
+		
+		if #l_PastMaps == g_Config["mapchooser.exclude.count"] then
+			return l_PastMaps
+		end
 	end
 	
 	local l_CurrentTime = GetTime()
-	local l_HistoryMaps = {}
 	
 	for i = 1, #g_History do
 		local l_Map = g_History[i]["map"]
 		local l_StartTime = g_History[i]["started_at"]
 		
-		if not l_HistoryMaps[l_Map] then
-			local l_Index = Map_FindMap(l_Map)
-			
-			if l_Index then
-				if g_Config["mapchooser.exclude.time"] == 0 
-					or l_StartTime + g_Config["mapchooser.exclude.time"] > l_CurrentTime 
-				then
-					table.insert(l_PastMaps, g_Map["index"])
+		local l_Index = Map_FindMap(l_Map)
+		
+		if l_Index and not table.contains(l_PastMaps, l_Index) then
+			if g_Config["mapchooser.exclude.time"] == 0 
+				or l_StartTime + g_Config["mapchooser.exclude.time"] > l_CurrentTime 
+			then
+				table.insert(l_PastMaps, l_Index)
+				
+				if #l_PastMaps == g_Config["mapchooser.exclude.count"] then
+					break
 				end
-			end
-			
-			l_HistoryMaps[l_Map] = true
-			
-			if #l_PastMaps == g_Config["mapchooser.exclude.count"] then
-				break
 			end
 		end
 	end
@@ -288,22 +311,10 @@ function Map_HandlePlayerVote(p_PlayerId, p_Text)
 	
 	local l_Index = tonumber(p_Text)
 	
-	if not l_Index or l_Index < 1 then
+	if not l_Index or l_Index < 1 or l_Index > #g_VoteMaps then
 		l_Player:SendMsg(MessageType.Chat, string.format("{lightred}%s{default} Invalid ID specified", g_Config["tag"]))
 		
-		if #g_Config["mapchooser.sounds.player.error"] ~= 0 then
-			exports["helpers"]:EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.error"], 100, 1.0)
-		end
-		
-		return
-	end
-	
-	if l_Index > #g_VoteMaps then
-		l_Player:SendMsg(MessageType.Chat, string.format("{lightred}%s{default} The maximum ID available is {lime}%d{default}", g_Config["tag"], #g_VoteMaps))
-		
-		if #g_Config["mapchooser.sounds.player.error"] ~= 0 then
-			exports["helpers"]:EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.error"], 100, 1.0)
-		end
+		Map_EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.error"])
 		
 		return
 	end
@@ -311,20 +322,16 @@ function Map_HandlePlayerVote(p_PlayerId, p_Text)
 	local l_PlayerVote = l_Player:GetVar("map.vote")
 	
 	if l_PlayerVote then
-		l_Player:SendMsg(MessageType.Chat, string.format("{lightred}%s{default} You already voted for {lime}%s{default}", g_Config["tag"], g_MapCycle[l_PlayerVote]["map"]))
+		l_Player:SendMsg(MessageType.Chat, string.format("{lightred}%s{default} You already voted {lime}(%s){default}", g_Config["tag"], g_MapCycle[l_PlayerVote]["map"]))
 		
-		if #g_Config["mapchooser.sounds.player.error"] ~= 0 then
-			exports["helpers"]:EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.error"], 100, 1.0)
-		end
+		Map_EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.error"])
 		
 		return
 	end
 	
 	l_Player:SendMsg(MessageType.Chat, string.format("{lime}%s{default} You voted for {lime}%s{default}", g_Config["tag"], g_MapCycle[g_VoteMaps[l_Index]]["map"]))
 	
-	if #g_Config["mapchooser.sounds.player.success"] ~= 0 then
-		exports["helpers"]:EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.success"], 100, 1.0)
-	end
+	Map_EmitSoundToPlayer(p_PlayerId, g_Config["mapchooser.sounds.player.success"])
 	
 	l_Player:SetVar("map.vote", g_VoteMaps[l_Index])
 end
@@ -420,11 +427,11 @@ function Map_LoadCurrentMap()
 	local l_Map = server:GetMap()
 	local l_Index = Map_FindMap(l_Map)
 	
-	g_Map = {}
-	
-	g_Map["map"] = l_Map
-	g_Map["index"] = l_Index
-	g_Map["time"] = l_CurrentTime
+	g_Map = {
+		["map"] = l_Map,
+		["index"] = l_Index,
+		["time"] = l_CurrentTime
+	}
 end
 
 function Map_LoadHistory()
@@ -484,14 +491,13 @@ end
 
 function Map_ResetVars()
 	g_Map = nil
-	g_MapChangePeriod = nil
 	
 	g_NextMap = nil
 	g_NextMapPeriod = nil
 	g_NextMapReason = nil
 	g_NextMapTime = nil
 	
-	g_RTVStartNextRound = nil
+	g_RTVNextRound = nil
 	
 	g_ThinkSoundTime = nil
 	
@@ -547,15 +553,15 @@ function Map_StartRTV(p_Delay)
 		end
 		
 		if exports["helpers"]:IsWarmupPeriod() or exports["helpers"]:IsRoundOver() then
-			if not g_RTVStartNextRound then
+			if not g_RTVNextRound then
 				playermanager:SendMsg(MessageType.Chat, string.format("{lime}%s{default} The vote will start on the next round", g_Config["tag"]))
 			end
 			
-			g_RTVStartNextRound = true
+			g_RTVNextRound = true
 			return
 		end
 		
-		g_RTVStartNextRound = nil
+		g_RTVNextRound = nil
 		
 		exports["helpers"]:SetConVar("mp_fraglimit", 0)
 		exports["helpers"]:SetConVar("mp_maxrounds", 0)
@@ -611,14 +617,12 @@ function Map_StartVote(p_Delay)
 				}
 			end
 			
-			g_NextMapTime = l_ServerTime + 3000
 			g_NextMapPeriod = true
+			g_NextMapTime = l_ServerTime + 3000
 			
 			playermanager:SendMsg(MessageType.Chat, string.format("{lime}%s{default} The nextmap will be {lime}%s{default}", g_Config["tag"], g_NextMap["map"]))
 			
-			if #g_Config["mapchooser.sounds.nextmap"] ~= 0 then
-				exports["helpers"]:EmitSoundToAll(g_Config["mapchooser.sounds.nextmap"], 100, 1.0)
-			end
+			Map_EmitSoundToAll(g_Config["mapchooser.sounds.nextmap"])
 		end
 		
 		Map_Think()
@@ -637,10 +641,6 @@ function Map_StartVote(p_Delay)
 end
 
 function Map_Think()
-	if g_MapChangePeriod then
-		return
-	end
-	
 	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
 	
 	if g_VotePeriod and l_ServerTime >= g_VoteEndTime then
@@ -685,9 +685,7 @@ function Map_Think()
 				l_HintTextBottom = l_HintTextBottom .. "Type the ID in chat"
 				
 				if not g_ThinkSoundTime or l_ServerTime >= g_ThinkSoundTime + THINK_SOUND_INTERVAL then
-					if #g_Config["mapchooser.sounds.timer"] ~= 0 then
-						exports["helpers"]:EmitSoundToPlayer(i, g_Config["mapchooser.sounds.timer"], 100, 1.0)
-					end
+					Map_EmitSoundToPlayer(i, g_Config["mapchooser.sounds.timer"])
 				end
 				
 				if l_PlayerIterVote then

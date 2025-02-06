@@ -57,14 +57,6 @@ AddEventHandler("OnMapUnload", function(p_Event, p_Map)
 	Map_SaveHistory()
 end)
 
-AddEventHandler("OnPostRoundStart", function(p_Event)
-	if not g_RTVStartNextRound then
-		return
-	end
-	
-	Map_StartRTV(1000)
-end)
-
 AddEventHandler("OnPostCsIntermission", function(p_Event)
 	local l_Delay = math.floor(convar:Get("mp_round_restart_delay") * 1000)
 	
@@ -74,6 +66,14 @@ end)
 AddEventHandler("OnCsWinPanelMatch", function(p_Event)
     p_Event:SetReturn(false)
     return EventResult.Handled
+end)
+
+AddEventHandler("OnPostRoundStart", function(p_Event)
+	if not g_RTVNextRound then
+		return
+	end
+	
+	Map_StartRTV(1000)
 end)
 
 AddEventHandler("OnClientChat", function(p_Event, p_PlayerId, p_Text, p_TeamOnly)

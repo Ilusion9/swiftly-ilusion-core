@@ -50,6 +50,16 @@ AddEventHandler("OnMapUnload", function(p_Event, p_Map)
 	end
 end)
 
+AddEventHandler("OnPostRoundPrestart", function(p_Event)
+	for i = 0, playermanager:GetPlayerCap() - 1 do
+		local l_PlayerIter = GetPlayer(i)
+		
+		if l_PlayerIter and l_PlayerIter:IsValid() then
+			l_PlayerIter:SetVar("fixes.respawn.time", nil)
+		end
+	end
+end)
+
 AddEventHandler("OnPostRoundEnd", function(p_Event)
 	Fixes_CheckMatchStatus()
 end)
@@ -124,7 +134,12 @@ AddEventHandler("OnPostPlayerDeath", function(p_Event)
 		return
 	end
 	
-	if exports["helpers"]:IsWarmupPeriod() then
+	local l_PlayerTeam = exports["helpers"]:GetPlayerTeam(l_PlayerId)
+	
+	if exports["helpers"]:IsWarmupPeriod() 
+		or convar:Get("mp_respawn_on_death_t") and l_PlayerTeam == Team.T 
+		or convar:Get("mp_respawn_on_death_ct") and l_PlayerTeam == Team.CT 
+	then
 		local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
 		
 		l_Player:SetVar("fixes.death.time", l_ServerTime)
