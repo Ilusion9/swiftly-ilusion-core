@@ -12,7 +12,6 @@ sw_who - Shows the online admins - Permission "who"
 
 Requirements:
 ```
-help
 helpers
 ```
 
@@ -28,14 +27,14 @@ helpers
 Description: Bans players. A MySQL database is required. Edit configs/databases.cfg to add a database connection. 
 
 ```
-    "ban": {
-        "hostname": "",
-        "username": "",
-        "password": "",
-        "database": "",
-        "port": 3306,
-        "kind": "mysql"
-    }
+"ban": {
+	"hostname": "",
+	"username": "",
+	"password": "",
+	"database": "",
+	"port": 3306,
+	"kind": "mysql"
+}
 ```
 
 Configuration: A time limit is specified in configs/plugins/ban.json. Use 0 or "permban" permission to ignore that.
@@ -59,14 +58,14 @@ helpers
 Description: Gags players. A MySQL database is required. Edit configs/databases.cfg to add a database connection. 
 
 ```
-    "gag": {
-        "hostname": "",
-        "username": "",
-        "password": "",
-        "database": "",
-        "port": 3306,
-        "kind": "mysql"
-    }
+"gag": {
+	"hostname": "",
+	"username": "",
+	"password": "",
+	"database": "",
+	"port": 3306,
+	"kind": "mysql"
+}
 ```
 
 Configuration: A time limit is specified in configs/plugins/gag.json. Use 0 or "permgag" permission to ignore that.
@@ -90,14 +89,14 @@ helpers
 Description: Mutes players. A MySQL database is required. Edit configs/databases.cfg to add a database connection. 
 
 ```
-    "mute": {
-        "hostname": "",
-        "username": "",
-        "password": "",
-        "database": "",
-        "port": 3306,
-        "kind": "mysql"
-    }
+"mute": {
+	"hostname": "",
+	"username": "",
+	"password": "",
+	"database": "",
+	"port": 3306,
+	"kind": "mysql"
+}
 ```
 
 Configuration: A time limit is specified in configs/plugins/mute.json. Use 0 or "permmute" permission to ignore that.
@@ -115,4 +114,77 @@ Requirements:
 ```
 admin
 helpers
+```
+
+## Stats
+Description: Stats for players. Data older than 1 month is automatically deleted. This plugin is deisgned to be used with any gamemode. Below is an example of how to save points, kills, deaths and how to display them.
+
+Commands:
+```
+sw_rank - Shows a player's rank
+sw_stats [@steam|#userid|name] - Shows a player's stats - Permission "rcon" if target is specified
+sw_stats_database_create - Creates the player stats database - Permission "rcon"
+sw_stats_database_delete - Deletes the player stats database - Permission "rcon"
+sw_top - Shows the top players
+```
+
+Example:
+```lua
+AddEventHandler("Stats_OnPlayerGetStats", function(p_Event, p_PlayerId, p_Stats)
+	local l_Kills = p_Stats["custom1"]
+	local l_Deaths = p_Stats["custom2"]
+	
+	p_Event:SetReturn({
+		string.format("Kills: %d", l_Kills),
+		string.format("Deaths: %d", l_Deaths)
+	})
+end)
+
+AddEventHandler("Stats_OnPlayerGetTop", function(p_Event, p_PlayerId, p_Stats)
+	local l_Header = {
+		"Kills",
+		"Deaths"
+	}
+	
+	local l_Body = {}
+	
+	for i = 1, #p_Stats do
+		local l_Kills = p_Stats[i]["custom1"]
+		local l_Deaths = p_Stats[i]["custom2"]
+		
+		table.insert(l_Body, {
+			string.format("%d", l_Kills),
+			string.format("%d", l_Deaths)
+		})
+	end
+	
+	p_Event:SetReturn({
+		["header"] = l_Header,
+		["body"] = l_Body
+	})
+end)
+
+AddEventHandler("Stats_OnPlayerSetStats", function(p_Event, p_PlayerId)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player then
+		return
+	end
+	
+	local l_PlayerStatsPoints = l_Player:GetVar("stats.points") or 0
+	local l_PlayerStatsKills = l_Player:GetVar("stats.kills") or 0
+	local l_PlayerStatsDeaths = l_Player:GetVar("stats.deaths") or 0
+	
+	local l_Stats = {
+		["points"] = l_PlayerStatsPoints,
+		["custom1"] = l_PlayerStatsKills,
+		["custom2"] = l_PlayerStatsDeaths
+	}
+	
+	l_Player:SetVar("stats.kills", nil)
+	l_Player:SetVar("stats.deaths", nil)
+	l_Player:SetVar("stats.points", nil)
+	
+	p_Event:SetReturn(l_Stats)
+end)
 ```
