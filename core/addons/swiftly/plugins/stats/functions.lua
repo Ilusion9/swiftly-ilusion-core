@@ -105,9 +105,9 @@ function Stats_PerformRank(p_PlayerId)
 			return
 		end
 		
-		local l_Count = tonumber(p_Result[1]["rank"]) + tonumber(#p_Result ~= 2)
+		local l_Count = tonumber(p_Result[1]["rank"]) + (#p_Result ~= 2 and 1 or 0)
 		
-		local l_Rank = tonumber(p_Result[#p_Result]["rank"]) + tonumber(#p_Result ~= 2)
+		local l_Rank = tonumber(p_Result[#p_Result]["rank"]) + (#p_Result ~= 2 and 1 or 0)
 		local l_Points = tonumber(p_Result[#p_Result]["points"])
 		
 		exports["helpers"]:ReplyToCommand(p_PlayerId, "{lime}" .. g_Config["tag"] .. "{default}", string.format("You are ranked {lime}%d{default} of {lime}%d{default} with {lime}%d{default} %s", l_Rank, l_Count, l_Points, l_Points ~= 1 and "points" or "point"))
@@ -154,9 +154,9 @@ function Stats_PerformStats(p_PlayerId, p_TargetId, p_TargetSteam)
 			l_Player:SendMsg(MessageType.Chat, string.format("{yellow}%s{default} See console for output", g_Config["tag"]))
 		end
 		
-		local l_Count = tonumber(p_Result[1]["rank"]) + tonumber(#p_Result ~= 2)
+		local l_Count = tonumber(p_Result[1]["rank"]) + (#p_Result ~= 2 and 1 or 0)
 		
-		local l_Rank = tonumber(p_Result[#p_Result]["rank"]) + tonumber(#p_Result ~= 2)
+		local l_Rank = tonumber(p_Result[#p_Result]["rank"]) + (#p_Result ~= 2 and 1 or 0)
 		local l_Points = tonumber(p_Result[#p_Result]["points"])
 		
 		local l_Custom1 = tonumber(p_Result[#p_Result]["custom1"])
@@ -303,7 +303,9 @@ function Stats_PerformTop(p_PlayerId)
 		end
 		
 		for i = 1, #l_EventResult["body"] do
-			table.insert(l_Body[i], l_EventResult["body"][i])
+			for j = 1, #l_EventResult["body"][i] do
+				table.insert(l_Body[i], l_EventResult["body"][i][j])
+			end
 		end
 		
 		l_Player:SendMsg(MessageType.Console, string.format("%s\n", g_Config["tag"]))
