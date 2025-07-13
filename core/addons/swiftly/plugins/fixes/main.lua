@@ -5,6 +5,7 @@ AddEventHandler("OnPluginStart", function(p_Event)
 	g_PluginIsLoadingLate = l_ServerTime > 0
 	
 	Fixes_ResetVars()
+	Fixes_SetMapStartTime()
 end)
 
 AddEventHandler("OnAllPluginsLoaded", function(p_Event)
@@ -29,7 +30,9 @@ end)
 
 AddEventHandler("OnMapLoad", function(p_Event, p_Map)
 	Fixes_ResetVars()
+	
 	Fixes_SetConVars()
+	Fixes_SetMapStartTime()
 	
 	if not g_PluginIsLoading then
 		if not g_ThinkTimer then
@@ -94,6 +97,20 @@ AddEventHandler("Helpers_OnTerminateRoundPre", function(p_Event, p_Reason, p_Ide
 	end
 end)
 
+AddEventHandler("OnEntityAcceptInput", function(p_Event, p_EntityPtr, p_InputName, p_ActivatorPtr, p_CallerPtr, p_Value, p_OutputID)
+	local l_Entity = CBaseEntity(p_EntityPtr)
+	
+	if not l_Entity or not l_Entity:IsValid() then
+		return EventResult.Continue
+	end
+	
+	local l_EntityClassname = l_Entity:GetClassname()
+	
+	if l_EntityClassname == "game_player_equip" then
+		Fixes_HandleEquipInput(p_EntityPtr, p_ActivatorPtr, string.lower(p_InputName))
+	end
+end)
+
 AddEventHandler("OnClientKeyStateChange", function(p_Event, p_PlayerId, p_Key, p_IsPressed)
 	if not p_IsPressed or p_Key ~= "space" then
 		return
@@ -108,6 +125,7 @@ end)
 
 AddEventHandler("OnPostPlayerDisconnect", function(p_Event)
 	Fixes_CheckRoundStatus()
+	Fixes_SetDisconnectionTime()
 end)
 
 AddEventHandler("OnPostPlayerSpawn", function(p_Event)

@@ -380,20 +380,20 @@ function Helpers_GetMapTimeLeft()
 		return nil
 	end
 	
-	if Helpers_IsWarmupPeriod() then
-		return nil
-	end
-	
-	local l_TimeLimit = math.max(convar:Get("mp_timelimit"), 0)
+	local l_TimeLimit = math.floor(math.max(convar:Get("mp_timelimit"), 0) * 60000)
 	
 	if l_TimeLimit == 0 then
 		return TIME_INDEFINITE
 	end
 	
+	if Helpers_IsWarmupPeriod() then
+		return l_TimeLimit
+	end
+	
 	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
 	
 	local l_StartTime = math.floor(l_Entity.MatchStartTime * 1000)
-	local l_TimeLeft = l_StartTime + math.floor(l_TimeLimit * 60000) - l_ServerTime
+	local l_TimeLeft = l_StartTime + l_TimeLimit - l_ServerTime
 	
 	return math.max(l_TimeLeft, 0)
 end
@@ -1213,6 +1213,16 @@ function Helpers_GivePlayerWeapon(p_PlayerId, p_Classname)
 	end
 end
 
+function Helpers_HasPlayerImmunity(p_PlayerId)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player or not l_Player:IsValid() then
+		return false
+	end
+	
+	return not l_Player:CBaseEntity().TakesDamage
+end
+
 function Helpers_IsBoxTouchingBox(p_Origin1, p_Mins1, p_Maxs1, p_Origin2, p_Mins2, p_Maxs2)
 	if p_Origin1[1] + p_Maxs1[1] < p_Origin2[1] + p_Mins2[1] 
 		or p_Origin1[1] + p_Mins1[1] > p_Origin2[1] + p_Maxs2[1] 
@@ -1248,7 +1258,7 @@ function Helpers_IsHalfTime()
 		return false
 	end
 	
-	return l_Entity.GamePhase == PERIOD_HALFTIME
+	return l_Entity.GamePhase == GamePhase.GAMEPHASE_HALFTIME
 end
 
 function Helpers_IsItemClassnameKnife(p_Classname)
@@ -1282,7 +1292,7 @@ function Helpers_IsMatchOver()
 		return false
 	end
 	
-	return l_Entity.GamePhase == PERIOD_MATCH_END
+	return l_Entity.GamePhase == GamePhase.GAMEPHASE_MATCH_ENDED
 end
 
 function Helpers_IsPlayerAlive(p_PlayerId)
@@ -1299,16 +1309,6 @@ function Helpers_IsPlayerAlive(p_PlayerId)
 	end
 	
 	return true
-end
-
-function Helpers_IsPlayerGod(p_PlayerId)
-	local l_Player = GetPlayer(p_PlayerId)
-	
-	if not l_Player or not l_Player:IsValid() then
-		return false
-	end
-	
-	return not l_Player:CBaseEntity().TakesDamage
 end
 
 function Helpers_IsPlayerInKickQueue(p_PlayerId)
@@ -1601,12 +1601,12 @@ function Helpers_RefillPlayerAmmo(p_PlayerId, p_Weapon)
 	local l_PlayerWeapons = l_Player:GetWeaponManager():GetWeapons()
 	
 	for i = 1, #l_PlayerWeapons do
-		local l_Entity = l_PlayerWeapons[i]:CBasePlayerWeapon()
-		local l_EntityData = l_PlayerWeapons[i]:CCSWeaponBaseVData()
+		local l_PlayerWeapon = l_PlayerWeapons[i]:CBasePlayerWeapon()
+		local l_PlayerWeaponData = l_PlayerWeapons[i]:CCSWeaponBaseVData()
 		
-		l_Entity.ReserveAmmo = {
-			l_EntityData.PrimaryReserveAmmoMax,
-			l_Entity.ReserveAmmo[1]
+		l_PlayerWeapon.ReserveAmmo = {
+			l_PlayerWeaponData.PrimaryReserveAmmoMax,
+			l_PlayerWeapon.ReserveAmmo[1]
 		}
 	end
 end
@@ -1618,9 +1618,7 @@ function Helpers_RemovePlayerArmor(p_PlayerId)
 		return
 	end
 	
-	l_Player:GetWeaponManager():RemoveByClassname("item_heavyassaultsuit")
-	l_Player:GetWeaponManager():RemoveByClassname("item_assaultsuit")
-	l_Player:GetWeaponManager():RemoveByClassname("item_kevlar")
+	l_Player:CCSPlayerPawn().ArmorValue = 0
 end
 
 function Helpers_RemovePlayerChatTag(p_PlayerId, p_Tag)
@@ -1783,7 +1781,7 @@ function Helpers_RemovePlayerClanTags(p_PlayerId)
 	l_Player:SetVar("helpers.clan.tags", l_PlayerTags)
 end
 
-function Helpers_RemovePlayerGod(p_PlayerId)
+function Helpers_RemovePlayerImmunity(p_PlayerId)
 	local l_Player = GetPlayer(p_PlayerId)
 	
 	if not l_Player or not l_Player:IsValid() then
@@ -1844,9 +1842,7 @@ function Helpers_RestorePlayerName(p_PlayerId)
 end
 
 function Helpers_SetConVar(p_Name, p_Value)
-	local l_Flags = convar:GetFlags(p_Name)
-	
-	if l_Flags & (ConvarFlags.FCVAR_CHEAT) ~= 0 then
+	if (convar:HasFlags(p_Name, ConvarFlags.FCVAR_CHEAT)) then
 		convar:RemoveFlags(p_Name, ConvarFlags.FCVAR_CHEAT)
 		convar:Set(p_Name, p_Value)
 		
@@ -1942,9 +1938,7 @@ function Helpers_SetPlayerConVar(p_PlayerId, p_Name, p_Value)
 		return
 	end
 	
-	local l_Flags = convar:GetFlags(p_Name)
-	
-	if l_Flags & (ConvarFlags.FCVAR_CHEAT) ~= 0 then
+	if (convar:HasFlags(p_Name, ConvarFlags.FCVAR_CHEAT)) then
 		convar:RemoveFlags(p_Name, ConvarFlags.FCVAR_CHEAT)
 		
 		l_Player:SetConvar(p_Name, p_Value)
@@ -1987,26 +1981,6 @@ function Helpers_SetPlayerEntityName(p_PlayerId, p_Name)
 	l_Player:CBaseEntity().Parent.Entity.Name = p_Name
 end
 
-function Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
-	local l_Player = GetPlayer(p_PlayerId)
-	
-	if not l_Player or not l_Player:IsValid() then
-		return
-	end
-	
-	exports["helpers"]:SetEntityRenderColor(l_Player:CBaseEntity():ToPtr(), p_Color)
-end
-
-function Helpers_SetPlayerGod(p_PlayerId)
-	local l_Player = GetPlayer(p_PlayerId)
-	
-	if not l_Player or not l_Player:IsValid() then
-		return
-	end
-	
-	l_Player:CBaseEntity().TakesDamage = false
-end
-
 function Helpers_SetPlayerHealth(p_PlayerId, p_Health)
 	local l_Player = GetPlayer(p_PlayerId)
 	
@@ -2015,6 +1989,16 @@ function Helpers_SetPlayerHealth(p_PlayerId, p_Health)
 	end
 	
 	l_Player:CBaseEntity().Health = p_Health
+end
+
+function Helpers_SetPlayerImmunity(p_PlayerId)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player or not l_Player:IsValid() then
+		return
+	end
+	
+	l_Player:CBaseEntity().TakesDamage = false
 end
 
 function Helpers_SetPlayerKills(p_PlayerId, p_Kills)
@@ -2035,6 +2019,16 @@ function Helpers_SetPlayerMVPs(p_PlayerId, p_MVPs)
 	end
 	
 	l_Player:CCSPlayerController().MVPs = p_MVPs
+end
+
+function Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player or not l_Player:IsValid() then
+		return
+	end
+	
+	exports["helpers"]:SetEntityRenderColor(l_Player:CBaseEntity():ToPtr(), p_Color)
 end
 
 function Helpers_SetPlayerScore(p_PlayerId, p_Score)
@@ -2213,7 +2207,7 @@ function Helpers_SlayPlayer(p_PlayerId)
 	Helpers_SetPlayerEntityName(p_PlayerId, "helpers_player_slay")
 	
 	Helpers_RemovePlayerArmor(p_PlayerId)
-	Helpers_RemovePlayerGod(p_PlayerId)
+	Helpers_RemovePlayerImmunity(p_PlayerId)
 	
 	l_Entity.Damage = l_PlayerHealth
 	l_Entity.StrTarget = "helpers_player_slay"

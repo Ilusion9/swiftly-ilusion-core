@@ -270,6 +270,10 @@ export("GivePlayerWeapon", function(p_PlayerId, p_Classname)
 	Helpers_GivePlayerWeapon(p_PlayerId, p_Classname)
 end)
 
+export("HasPlayerImmunity", function(p_PlayerId)
+	return Helpers_HasPlayerImmunity(p_PlayerId)
+end)
+
 export("IsBoxTouchingBox", function(p_Origin1, p_Mins1, p_Maxs1, p_Origin2, p_Mins2, p_Maxs2)
 	return Helpers_IsBoxTouchingBox(p_Origin1, p_Mins1, p_Maxs1, p_Origin2, p_Mins2, p_Maxs2)
 end)
@@ -300,10 +304,6 @@ end)
 
 export("IsPlayerAlive", function(p_PlayerId)
 	return Helpers_IsPlayerAlive(p_PlayerId)
-end)
-
-export("IsPlayerGod", function(p_PlayerId)
-	return Helpers_IsPlayerGod(p_PlayerId)
 end)
 
 export("IsPlayerInKickQueue", function(p_PlayerId)
@@ -374,8 +374,8 @@ export("RemovePlayerClanTag", function(p_PlayerId, p_Tag)
 	Helpers_RemovePlayerClanTag(p_PlayerId, p_Tag)
 end)
 
-export("RemovePlayerGod", function(p_PlayerId)
-	Helpers_RemovePlayerGod(p_PlayerId)
+export("RemovePlayerImmunity", function(p_PlayerId)
+	Helpers_RemovePlayerImmunity(p_PlayerId)
 end)
 
 export("ReplyToCommand", function(p_PlayerId, p_Tag, p_Message)
@@ -426,16 +426,12 @@ export("SetPlayerEntityName", function(p_PlayerId, p_Name)
 	Helpers_SetPlayerEntityName(p_PlayerId, p_Name)
 end)
 
-export("SetPlayerRenderColor", function(p_PlayerId, p_Color)
-	Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
-end)
-
-export("SetPlayerGod", function(p_PlayerId)
-	Helpers_SetPlayerGod(p_PlayerId)
-end)
-
 export("SetPlayerHealth", function(p_PlayerId, p_Health)
 	Helpers_SetPlayerHealth(p_PlayerId, p_Health)
+end)
+
+export("SetPlayerImmunity", function(p_PlayerId)
+	Helpers_SetPlayerImmunity(p_PlayerId)
 end)
 
 export("SetPlayerKills", function(p_PlayerId, p_Kills)
@@ -444,6 +440,10 @@ end)
 
 export("SetPlayerMVPs", function(p_PlayerId, p_MVPs)
 	Helpers_SetPlayerMVPs(p_PlayerId, p_MVPs)
+end)
+
+export("SetPlayerRenderColor", function(p_PlayerId, p_Color)
+	Helpers_SetPlayerRenderColor(p_PlayerId, p_Color)
 end)
 
 export("SetPlayerScore", function(p_PlayerId, p_Score)

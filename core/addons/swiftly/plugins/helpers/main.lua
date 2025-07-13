@@ -1,7 +1,7 @@
 g_Memory_TerminateRound = Memory()
 g_Memory_TerminateRound:LoadFromSignatureName("CGameRules_TerminateRound")
 
-g_Hook_TerminateRound = AddHook(g_Memory_TerminateRound, "pufuu", "v")
+g_Hook_TerminateRound = AddHook(g_Memory_TerminateRound, "pfuIu", "v")
 
 AddEventHandler("OnPluginStart", function(p_Event)
 	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
@@ -47,7 +47,7 @@ end)
 
 AddPreHookListener(g_Hook_TerminateRound, function(p_Event)
 	local l_Identifier = g_TerminateIdentifier
-	local l_Reason = p_Event:GetHookUInt(1)
+	local l_Reason = p_Event:GetHookUInt(2)
 	
 	g_TerminateIdentifier = nil
 	
@@ -59,7 +59,7 @@ AddPreHookListener(g_Hook_TerminateRound, function(p_Event)
 	l_EventReturn, l_Event = TriggerEvent("Helpers_OnTerminateRound", l_Reason, l_Identifier)
 	l_EventReason = l_Event:GetReturn() or l_Reason
 	
-	p_Event:SetHookUInt(1, l_EventReason)
+	p_Event:SetHookUInt(2, l_EventReason)
 	
 	if l_EventReturn == EventResult.Continue 
 		or l_EventReturn == EventResult.Handled 

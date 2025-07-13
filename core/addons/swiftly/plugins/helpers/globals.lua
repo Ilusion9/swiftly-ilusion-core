@@ -2,9 +2,6 @@ NULL_VECTOR = {
 	0, 0, 0
 }
 
-PERIOD_HALFTIME = 4
-PERIOD_MATCH_END = 5
-
 TIME_INDEFINITE = -1
 
 g_ChatColors = {

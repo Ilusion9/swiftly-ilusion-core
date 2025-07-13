@@ -61,6 +61,77 @@ function Fixes_CheckWarmupStatus()
 	end)
 end
 
+function Fixes_HandleEquipInput(p_EntityPtr, p_ActivatorPtr, p_InputName)
+	local l_Entity = CBaseEntity(p_EntityPtr)
+	
+	if not l_Entity or not l_Entity:IsValid() then
+		return
+	end
+	
+	if (l_Entity.Spawnflags & GAME_PLAYER_EQUIP_STRIP_WEAPONS) == 0 then
+		return
+	end
+	
+	if p_InputName == "triggerforallplayers" then
+		for i = 0, playermanager:GetPlayerCap() - 1 do
+			Fixes_RemovePlayerWeapons(i)
+		end
+	elseif p_InputName == "triggerforactivatedplayer" or p_InputName == "use" then
+		local l_ActivatorPawn = CBasePlayerPawn(p_ActivatorPtr)
+		
+		if not l_ActivatorPawn 
+			or not l_ActivatorPawn:IsValid() 
+			or not l_ActivatorPawn.Controller 
+			or not l_ActivatorPawn.Controller:IsValid() 
+		then
+			return
+		end
+		
+		local l_PlayerId = l_ActivatorPawn.Controller:EntityIndex() - 1
+		
+		Fixes_RemovePlayerWeapons(l_PlayerId)
+	end
+end
+
+function Fixes_ReloadMap()
+	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
+	local l_HibernationStartTime = g_DisconnectionTime or g_MapStartTime
+	
+	if l_HibernationStartTime + HIBERNATION_TIME > l_ServerTime then
+		return
+	end
+	
+	local l_PlayerCount = exports["helpers"]:GetPlayerCount(true)
+	
+	if l_PlayerCount ~= 0 then
+		return
+	end
+	
+	local l_Map = server:GetMap()
+	local l_Index = exports["map"]:FindMap(l_Map)
+	
+	if l_Index then
+		local l_MapCycle = exports["map"]:GetMaps()
+		
+		exports["map"]:ChangeMap(l_MapCycle[l_Index]["map"], l_MapCycle[l_Index]["workshop"], "reload")
+	else
+		exports["map"]:ChangeMap(l_Map, 0, "reload")
+	end
+end
+
+function Fixes_RemovePlayerWeapons(p_PlayerId)
+	local l_Player = GetPlayer(p_PlayerId)
+	
+	if not l_Player 
+		or not l_Player:IsValid() 
+		or not exports["helpers"]:IsPlayerAlive(p_PlayerId) 
+	then
+		return
+	end
+	
+	l_Player:GetWeaponManager():RemoveWeapons()
+end
+
 function Fixes_ResetPlayerVars(p_PlayerId)
 	local l_Player = GetPlayer(p_PlayerId)
 	
@@ -73,7 +144,9 @@ function Fixes_ResetPlayerVars(p_PlayerId)
 end
 
 function Fixes_ResetVars()
-	g_RuleEntity = nil
+	g_DisconnectionTime = nil
+	
+	g_MapStartTime = nil
 	
 	g_ThinkFunctionTime = nil
 end
@@ -158,6 +231,18 @@ function Fixes_SetConVars()
 	end
 end
 
+function Fixes_SetDisconnectionTime()
+	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
+	
+	g_DisconnectionTime = l_ServerTime
+end
+
+function Fixes_SetMapStartTime()
+	local l_ServerTime = math.floor(server:GetCurrentTime() * 1000)
+	
+	g_MapStartTime = l_ServerTime
+end
+
 function Fixes_SetPlayerTeam(p_PlayerId, p_Team)
 	NextTick(function()
 		local l_Player = GetPlayer(p_PlayerId)
@@ -181,6 +266,8 @@ function Fixes_Think()
 	end
 	
 	if not g_ThinkFunctionTime or l_ServerTime >= g_ThinkFunctionTime + THINK_FUNCTION_INTERVAL then
+		Fixes_ReloadMap()
+		
 		g_ThinkFunctionTime = l_ServerTime
 	end
 end

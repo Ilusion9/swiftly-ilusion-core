@@ -17,7 +17,7 @@ function Map_ChangeMap(p_Map, p_Workshop, p_Reason)
 	
 	g_NextMapReason = p_Reason
 	
-	if p_Workshop then
+	if p_Workshop ~= 0 then
 		server:Execute("host_workshop_map " .. p_Workshop)
 	else
 		server:Execute("changelevel " .. p_Map)
@@ -164,6 +164,19 @@ function Map_FindMap(p_Str)
 	end
 	
 	return l_Index
+end
+
+function Map_GetMaps()
+	local l_Maps = {}
+	
+	for i = 1, #g_MapCycle do
+		table.insert(l_Maps, {
+			["map"] = g_MapCycle[i]["map"],
+			["workshop"] = g_MapCycle[i]["workshop"]
+		})
+	end
+	
+	return l_Maps
 end
 
 function Map_GetNextMaps()
@@ -462,8 +475,8 @@ function Map_LoadMaps()
 			l_Map = nil
 		end
 		
-		if not l_Workshop or l_Workshop < 1 then
-			l_Workshop = nil
+		if not l_Workshop or l_Workshop < 0 then
+			l_Workshop = 0
 		end
 		
 		if l_Map and not l_Maps[l_Map] then
