@@ -1,6 +1,8 @@
 # Description
 This project is designed to be a base addons for CS2 servers.
 
+This project is deprecated and no longer supported because of some stupid decisions from Swiftly developers to replace Lua with C#.
+
 ## Admin
 Description: A basic admin plugin which uses permissions instead of flags. Edit configs/plugins/admin.json to give accesses.
 
